@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Shift — SGH Pharmacy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --navy:#0B2C4D;--navy2:#143b63;--green:#1A8754;
+  --bg:#EEF2F6;--card:#fff;--ink:#0F2236;--muted:#5B6B7C;--line:#DDE5EC;
+  --out-bg:#FFF3D6;--out-ink:#8A5A00;--out-bar:#E8A317;
+  --in-bg:#DEEBFB;--in-ink:#1B4F86;--in-bar:#2F77C7;
+  --nt-bg:#E4E2F4;--nt-ink:#3A327A;--nt-bar:#5247A8;
+  --iv-bg:#E2F4E8;--iv-ink:#176A3D;--iv-bar:#28A75C;
+  --cl-bg:#DDF3F1;--cl-ink:#0E6A60;--cl-bar:#1AA396;
+  --na-bg:#FBE4DC;--na-ink:#9C3B16;--na-bar:#D9622E;
+  --off-bg:#EEF1F4;--off-ink:#8A97A4;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:780px;margin:0 auto;padding:0 14px 60px}
+header{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border-radius:0 0 20px 20px}
+.hd{max-width:780px;margin:0 auto;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.crest{width:44px;height:44px;border-radius:11px;background:#fff;display:grid;place-items:center}
+.crest span{font-weight:800;color:var(--navy);font-size:18px}
+.brand h1{font-size:16px;font-weight:800}
+.brand p{font-size:12px;color:#bcd2e8;font-weight:500}
+.livetag{font-size:11px;color:#cfe0f1;display:flex;align-items:center;gap:6px;font-weight:600}
+.livedot{width:8px;height:8px;border-radius:50%;background:#36d27a;box-shadow:0 0 0 0 rgba(54,210,122,.6);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(54,210,122,.5)}70%{box-shadow:0 0 0 6px rgba(54,210,122,0)}100%{box-shadow:0 0 0 0 rgba(54,210,122,0)}}
+
+.pickrow{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-top:16px;padding:16px;display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:11.5px;font-weight:700;color:var(--muted)}
+select.big{font-family:inherit;font-size:15px;font-weight:700;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;min-width:220px;cursor:pointer}
+select.big:focus{outline:2px solid var(--green);border-color:var(--green)}
+.spacer{flex:1}
+.btn{font-family:inherit;font-weight:700;font-size:13px;border:1.5px solid var(--line);background:#fff;color:var(--navy);border-radius:9px;padding:8px 13px;cursor:pointer}
+.btn:hover{border-color:var(--green);color:var(--green)}
+
+.todaycard{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:16px;box-shadow:0 8px 26px rgba(16,34,54,.06)}
+.tbanner{padding:24px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.tbanner.OUT{background:linear-gradient(120deg,#E8A317,#caa10f)}
+.tbanner.IN{background:linear-gradient(120deg,#2F77C7,#225fa3)}
+.tbanner.NIGHT{background:linear-gradient(120deg,#5247A8,#3c3486)}
+.tbanner.IV{background:linear-gradient(120deg,#28A75C,#1f8a49)}
+.tbanner.CLINICAL{background:linear-gradient(120deg,#1AA396,#147f76)}
+.tbanner.NARCOTIC{background:linear-gradient(120deg,#D9622E,#b84e22)}
+.tbanner.OFF{background:linear-gradient(120deg,#7c8a99,#5f6e7c)}
+.tbanner .who p{font-size:12px;opacity:.85;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+.tbanner .who h2{font-size:24px;font-weight:800;margin-top:3px}
+.tbanner .who .sub{font-size:13.5px;font-weight:600;opacity:.92;margin-top:4px}
+.shiftpill{background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.4);border-radius:14px;padding:13px 20px;text-align:center}
+.shiftpill .lab{font-size:11px;font-weight:600;opacity:.9}
+.shiftpill .big{font-size:17px;font-weight:800;margin-top:2px}
+.shiftpill .tm{font-size:12px;font-weight:600;opacity:.92;margin-top:2px}
+.nodata{padding:26px;text-align:center;color:var(--muted)}
+
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin:14px 4px 0;font-size:12px;color:var(--muted);font-weight:600}
+.legend i{width:13px;height:13px;border-radius:4px;display:inline-block;vertical-align:-2px;margin-right:4px}
+
+.weekblock{margin-top:16px}
+.weekhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.weekhead h4{font-size:13.5px;font-weight:800;color:var(--navy)}
+.tagnow{background:var(--ok-bg,#E7F4EC);color:var(--green);font-size:10.5px;font-weight:800;border-radius:20px;padding:3px 9px}
+.daychips{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.chip{border-radius:11px;padding:9px 3px;text-align:center;border:1px solid var(--line);background:#fff}
+.chip .d{font-size:10.5px;font-weight:700;color:var(--muted)}
+.chip .dt{font-size:9px;color:#a7b1ba;font-weight:600}
+.chip .s{font-size:9.5px;font-weight:800;margin-top:4px;line-height:1.2}
+.chip.work{border-width:0}
+.chip.OUT{background:var(--out-bg);color:var(--out-ink)}
+.chip.IN{background:var(--in-bg);color:var(--in-ink)}
+.chip.NIGHT{background:var(--nt-bg);color:var(--nt-ink)}
+.chip.IV{background:var(--iv-bg);color:var(--iv-ink)}
+.chip.CLINICAL{background:var(--cl-bg);color:var(--cl-ink)}
+.chip.NARCOTIC{background:var(--na-bg);color:var(--na-ink)}
+.chip.OFF{background:var(--off-bg);color:var(--off-ink)}
+.chip.today{outline:2.5px solid var(--green);outline-offset:1px}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:22px}
+@media print{.pickrow,.livetag{display:none}header{border-radius:0}}
+@media(max-width:560px){.daychips{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header><div class="hd">
+  <div class="brand"><div class="crest"><span>SGH</span></div>
+    <div><h1>My Shift</h1><p>Saudi German Hospital — Hail Pharmacy</p></div></div>
+  <div class="livetag" id="liveTag"><span class="livedot"></span> Live schedule</div>
+</div></header>
+
+<div class="wrap">
+  <div class="pickrow">
+    <div class="field"><label for="empSel">Select your name</label>
+      <select class="big" id="empSel" onchange="renderEmp()"></select></div>
+    <div class="spacer"></div>
+    <button class="btn" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div class="todaycard" id="todayCard"><div class="nodata">Loading schedule…</div></div>
+  <div class="legend">
+    <span><i style="background:var(--out-bar)"></i>Outpatient</span>
+    <span><i style="background:var(--in-bar)"></i>Inpatient</span>
+    <span><i style="background:var(--nt-bar)"></i>Night</span>
+    <span><i style="background:var(--iv-bar)"></i>IV</span>
+    <span><i style="background:var(--cl-bar)"></i>Clinical & Quality</span>
+    <span><i style="background:var(--na-bar)"></i>Narcotic</span>
+    <span><i style="background:var(--off-ink)"></i>Off</span>
+  </div>
+  <div id="weeksBox"></div>
+  <footer>Read-only view · Updates live whenever the schedule is saved · Saudi German Hospital Pharmacy, Hail</footer>
+  <footer style="margin-top:4px;font-weight:700;color:var(--navy)">Made by Dr.Yazeed Alsomair</footer>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBbEccCT3NRneb_UWstMv0GYaXvrvms0OE",
+  authDomain: "pharmcy-sgh.firebaseapp.com",
+  projectId: "pharmcy-sgh",
+  storageBucket: "pharmcy-sgh.firebasestorage.app",
+  messagingSenderId: "22468578998",
+  appId: "1:22468578998:web:6c77d9f128764cd6a56017"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const DOC_REF = db.collection("pharmacySchedule").doc("current");
+
+const CATALOG = {
+ OUT_73:{l:"Outpatient 7am-3pm",dept:"OUT"}, OUT_84:{l:"Outpatient 8am-4pm",dept:"OUT"},
+ OUT_SPLIT:{l:"Outpatient 9am-1pm / 5:30-9:30pm",dept:"OUT"}, OUT_95:{l:"Outpatient 9am-5pm",dept:"OUT"},
+ OUT_19:{l:"Outpatient 1pm-9pm",dept:"OUT"}, OUT_130930:{l:"Outpatient 1:30pm-9:30pm",dept:"OUT"},
+ OUT_DEL:{l:"Outpatient 2pm-10pm (Delivery)",dept:"OUT"}, OUT_311:{l:"Outpatient 3pm-11pm",dept:"OUT"},
+ IN_73:{l:"Inpatient 7am-3pm",dept:"IN"}, IN_84:{l:"Inpatient 8am-4pm",dept:"IN"}, IN_311:{l:"Inpatient 3pm-11pm",dept:"IN"},
+ NIGHT:{l:"Night 11pm-7am",dept:"NIGHT"},
+ IV_73:{l:"IV 7am-3pm",dept:"IV"}, IV_95:{l:"IV 9am-5pm",dept:"IV"}, IV_19:{l:"IV 1pm-9pm",dept:"IV"},
+ CLINICAL:{l:"Clinical & Quality 8am-4pm",dept:"CLINICAL"}, NARCOTIC:{l:"Narcotic 8am-4pm",dept:"NARCOTIC"},
+ OFF:{l:"Off",dept:"OFF"}
+};
+
+let DATA=null, DAYS=[], EMP={}, NAMES=[], N=0;
+
+function safeMeta(code){ return CATALOG[code] || {l:code, dept:"OUT"}; }
+
+function fmtDate(iso){const d=new Date(iso+"T00:00:00");return d.toLocaleDateString("en-GB",{day:"2-digit",month:"short"});}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function dayIndexForToday(){return DAYS.findIndex(d=>d.iso===todayISO());}
+
+function fillEmpSelect(){
+  const s=document.getElementById("empSel"); const cur=s.value; s.innerHTML="";
+  NAMES.forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;s.appendChild(o);});
+  if(cur && NAMES.includes(cur)) s.value=cur;
+}
+
+function renderEmp(){
+  const name=document.getElementById("empSel").value;
+  if(!name) return;
+  const cells=EMP[name]; const todayIdx=dayIndexForToday();
+  const tc=document.getElementById("todayCard");
+  if(todayIdx===-1){
+    tc.innerHTML=`<div class="nodata">Today's date is outside the published schedule.<br>Showing the full roster below.</div>`;
+  }else{
+    const cell=cells[todayIdx]; const dept=cell.code==="OFF"?"OFF":safeMeta(cell.code).dept;
+    const d=DAYS[todayIdx];
+    tc.innerHTML=`<div class="tbanner ${dept}">
+      <div class="who"><p>Today · ${d.weekday}, ${fmtDate(d.iso)}</p><h2>${name}</h2>
+      ${cell.code==="OFF"?'<div class="sub">You are off today</div>':`<div class="sub">${dept.charAt(0)+dept.slice(1).toLowerCase()} department</div>`}</div>
+      <div class="shiftpill"><div class="lab">Today's shift</div>
+        <div class="big">${cell.code==="OFF"?"OFF":safeMeta(cell.code).l}</div>
+        ${cell.note?`<div class="tm">Actual: ${cell.note}</div>`:""}
+      </div></div>`;
+  }
+  const weeks=[]; for(let s=0,wn=1;s<N;s+=7,wn++){weeks.push({label:"Week "+wn,start:s,end:Math.min(s+7,N)});}
+  const curWeekIdx = todayIdx===-1 ? 0 : Math.floor(todayIdx/7);
+  let html="";
+  weeks.forEach((w,wi)=>{
+    const isNow = wi===curWeekIdx && todayIdx!==-1;
+    html+=`<div class="weekblock"><div class="weekhead"><h4>${w.label} <span style="color:var(--muted);font-weight:600">(${fmtDate(DAYS[w.start].iso)} – ${fmtDate(DAYS[w.end-1].iso)})</span></h4>${isNow?'<span class="tagnow">THIS WEEK</span>':''}</div><div class="daychips">`;
+    for(let i=w.start;i<w.end;i++){
+      const cell=cells[i]; const d=DAYS[i];
+      const dept=cell.code==="OFF"?"OFF":safeMeta(cell.code).dept;
+      const label=cell.code==="OFF"?"Off":safeMeta(cell.code).l.replace(/^(Outpatient|Inpatient|IV|Clinical & Quality|Narcotic|Night)\s/,"");
+      html+=`<div class="chip ${dept} ${cell.code!=="OFF"?"work":""} ${i===todayIdx?"today":""}">
+        <div class="d">${d.weekday.slice(0,3)}</div><div class="dt">${fmtDate(d.iso)}</div>
+        <div class="s">${label}</div></div>`;
+    }
+    html+=`</div></div>`;
+  });
+  document.getElementById("weeksBox").innerHTML=html;
+  const nowBlock=document.querySelector(".weekblock:has(.tagnow)");
+  if(nowBlock) nowBlock.scrollIntoView({block:"start"});
+}
+
+function applyData(d){
+  if(!d || !d.days || !d.assign){
+    document.getElementById("todayCard").innerHTML = `<div class="nodata">Schedule not published yet — check back soon.</div>`;
+    return;
+  }
+  DATA=d; DAYS=d.days; EMP=d.assign; NAMES=Object.keys(EMP); N=DAYS.length;
+  fillEmpSelect(); renderEmp();
+}
+
+DOC_REF.onSnapshot(
+  (snap)=>{ applyData(snap.exists ? snap.data() : null); },
+  (err)=>{ document.getElementById("todayCard").innerHTML = `<div class="nodata">Couldn't reach the live schedule. Check your connection.</div>`; console.error(err); }
+);
+</script>
+</body>
+</html>
